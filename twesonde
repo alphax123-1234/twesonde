@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Back @joseph_creates on Twesonde</title>
+<meta name="theme-color" content="#FDFBF7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { forest: '#0D3E26', clay: '#D97746', almond: '#FDFBF7', sage: '#E8EFE9', ink: '#1A2421' },
+  fontFamily: { sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'] }
+} } };
+</script>
+<style>
+  :focus-visible { outline: 3px solid #D97746; outline-offset: 2px; }
+  .spin { border-radius: 50%; border: 3px solid #E8EFE9; border-top-color: #0D3E26; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pop { animation: pop .35s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } .pop { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+
+<body class="bg-almond font-sans text-ink antialiased">
+<main class="mx-auto max-w-md px-5 pt-7" style="padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));">
+
+  <!-- Brand header. Two overlapping circles = people pooling together. -->
+  <header class="flex items-center gap-3">
+    <svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#0D3E26"/><circle cx="26" cy="14" r="12" fill="#D97746" fill-opacity=".9"/></svg>
+    <div>
+      <p class="text-[26px] font-extrabold leading-none tracking-tight text-forest">Twesonde</p>
+      <p class="mt-1 text-[13px] text-ink/65" title="Twesonde means: let's contribute together (Luganda)">Twesonde /tway-sown-day/ • Let's back each other.</p>
+    </div>
+  </header>
+
+  <!-- Creator profile.
+       API CONNECTION 1: GET {apiBase}/api/creators/joseph_creates -> { name, handle, bio, avatarUrl }
+       The handle comes from the URL (twesonde.ug/joseph_creates). -->
+  <section class="mt-7 flex items-start gap-4">
+    <div class="flex h-[76px] w-[76px] flex-none items-center justify-center rounded-full bg-forest text-3xl font-extrabold text-almond" aria-hidden="true">J</div>
+    <div>
+      <h1 class="text-2xl font-extrabold leading-tight text-forest">Joseph Creates</h1>
+      <p class="text-base font-medium text-ink/70">@joseph_creates</p>
+    </div>
+  </section>
+  <p class="mt-3 text-[17px] leading-relaxed">Boda stories, Kampala street food, campus gist. New skit every Friday. Webale nyo for backing me!</p>
+
+  <!-- Backing card -->
+  <section class="mt-7 rounded-3xl bg-sage p-5" aria-labelledby="back-title">
+
+    <div id="formView">
+      <h2 id="back-title" class="text-xl font-extrabold text-forest">Back Joseph</h2>
+      <p class="mt-1 text-[15px] text-ink/75">Pick a gift, or enter your own amount.</p>
+
+      <div class="mt-4 flex flex-col gap-2" role="group" aria-label="Choose a gift">
+        <button type="button" data-amount="3000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Buy a Rolex 🌯</span><span>(UGX 3,000)</span></button>
+        <button type="button" data-amount="5000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Buy a Soda 🥤</span><span>(UGX 5,000)</span></button>
+        <button type="button" data-amount="15000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Send Transport 🚌</span><span>(UGX 15,000)</span></button>
+      </div>
+
+      <p id="cardNote" class="mt-3 hidden rounded-xl bg-almond px-3 py-2 text-[14px] text-ink/80"></p>
+
+      <label for="custom" class="mt-4 block text-[15px] font-medium">Or enter another amount</label>
+      <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+        <span class="pl-4 pr-2 text-base font-bold text-ink/60">UGX</span>
+        <input id="custom" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 20,000" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+      </div>
+      <p id="amountError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+
+      <!-- Payment method tabs -->
+      <div class="mt-6 grid grid-cols-2 rounded-2xl bg-almond p-1" role="tablist" aria-label="Payment method">
+        <button id="tab-local" role="tab" aria-selected="true" aria-controls="panel-local" type="button" class="tab min-h-[48px] rounded-xl text-[15px] font-bold">Local pay</button>
+        <button id="tab-intl" role="tab" aria-selected="false" aria-controls="panel-intl" type="button" class="tab min-h-[48px] rounded-xl text-[15px] font-bold">International</button>
+      </div>
+
+      <!-- Local pay -->
+      <div id="panel-local" role="tabpanel" aria-labelledby="tab-local" class="mt-4">
+        <fieldset>
+          <legend class="text-[15px] font-medium">Pay with</legend>
+          <div class="mt-1.5 grid grid-cols-2 gap-2">
+            <label class="block cursor-pointer"><input type="radio" name="network" value="MTN" class="peer sr-only" checked>
+              <span class="flex min-h-[56px] items-center justify-center rounded-xl border-2 border-forest/20 bg-white text-base font-bold text-forest peer-checked:border-forest peer-checked:bg-forest peer-checked:text-almond peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-clay">MTN MoMo</span></label>
+            <label class="block cursor-pointer"><input type="radio" name="network" value="AIRTEL" class="peer sr-only">
+              <span class="flex min-h-[56px] items-center justify-center rounded-xl border-2 border-forest/20 bg-white text-base font-bold text-forest peer-checked:border-forest peer-checked:bg-forest peer-checked:text-almond peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-clay">Airtel Money</span></label>
+          </div>
+        </fieldset>
+        <label for="phone" class="mt-4 block text-[15px] font-medium">Mobile money number</label>
+        <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+          <span class="pl-4 pr-2 text-base font-bold text-ink/60">+256</span>
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="772 123 456" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+        </div>
+        <p id="phoneError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+      </div>
+
+      <!-- International card pay.
+           PRODUCTION NOTE: card numbers must never reach your own server. Use Flutterwave's hosted checkout
+           (or their Inline modal) so the card is entered on Flutterwave's secure page. This form is a visual
+           prototype only and sends nothing anywhere. -->
+      <div id="panel-intl" role="tabpanel" aria-labelledby="tab-intl" class="mt-4 hidden">
+        <label for="cardNum" class="block text-[15px] font-medium">Card number</label>
+        <input id="cardNum" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest">
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div><label for="cardExp" class="block text-[15px] font-medium">Expiry</label>
+            <input id="cardExp" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest"></div>
+          <div><label for="cardCvv" class="block text-[15px] font-medium">CVV</label>
+            <input id="cardCvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest"></div>
+        </div>
+        <label for="email" class="mt-3 block text-[15px] font-medium">Email for your receipt</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest">
+        <p id="cardError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+        <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-almond px-3 py-1.5 text-[13px] font-medium text-forest">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          Secured by Flutterwave
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-end justify-between">
+        <span class="text-[15px] font-medium text-ink/70">You are sending</span>
+        <span class="text-right"><span id="total" class="block text-[28px] font-extrabold leading-none text-forest">UGX 5,000</span><span id="usd" class="mt-1 hidden text-[13px] text-ink/65"></span></span>
+      </div>
+      <button id="backBtn" type="button" class="mt-3 min-h-[58px] w-full rounded-2xl bg-clay px-5 text-[19px] font-bold text-white active:scale-[0.99]">Back @joseph_creates</button>
+      <p id="payHint" class="mt-3 text-center text-[13px] text-ink/65">You will get a prompt on your phone to approve.</p>
+    </div>
+
+    <!-- Processing -->
+    <div id="procView" class="hidden" role="status" aria-live="polite">
+      <h2 class="text-xl font-extrabold text-forest">Sending your support</h2>
+      <p id="procSub" class="mt-1 text-[15px] text-ink/75"></p>
+      <ol id="steps" class="mt-5 flex flex-col gap-4"></ol>
+      <p class="mt-6 text-[15px] text-ink/70">Keep this page open until it finishes.</p>
+    </div>
+
+    <!-- Success -->
+    <div id="doneView" class="hidden text-center" role="status" aria-live="polite">
+      <div class="pop mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-forest text-almond" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h2 class="mt-4 text-2xl font-extrabold text-forest">Webale nyo!</h2>
+      <p id="doneText" class="mt-2 text-base leading-relaxed"></p>
+      <button id="againBtn" type="button" class="mt-5 min-h-[52px] w-full rounded-2xl border-2 border-forest text-base font-bold text-forest">Back Joseph again</button>
+    </div>
+  </section>
+
+  <footer class="mt-7 text-sm text-ink/60">Twesonde keeps a small fee to run the platform. Joseph receives the rest.</footer>
+</main>
+
+<script>
+const CONFIG = {
+  creatorHandle: 'joseph_creates',
+  minAmount: 2000, maxAmount: 5000000,
+  cardMinAmount: 15000,               // international card payments start here so card fees do not swallow the gift
+  ugxPerUsd: 3600,                    // display only. API CONNECTION 5: GET {apiBase}/api/rates/ugx-usd
+  apiBase: 'https://api.twesonde.ug'  // your secure server. No Flutterwave secret key ever goes in this file.
+};
+const PREFIXES = { MTN: ['76', '77', '78', '39'], AIRTEL: ['70', '74', '75'] };
+let amount = 5000, tab = 'local', saved = null;
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const fmt = (n) => 'UGX ' + n.toLocaleString('en-US');
+const network = () => document.querySelector('input[name="network"]:checked').value;
+const show = (id, msg) => { const e = $(id); e.textContent = msg; e.classList.remove('hidden'); };
+const hide = (id) => $(id).classList.add('hidden');
+const view = (v) => ['form', 'proc', 'done'].forEach((x) => $(x + 'View').classList.toggle('hidden', x !== v));
+
+/* ---------- Amount ---------- */
+const presets = document.querySelectorAll('.preset');
+function paint() {
+  $('total').textContent = fmt(amount);
+  const usd = $('usd');
+  usd.classList.toggle('hidden', tab !== 'intl');
+  usd.textContent = 'about US$ ' + (amount / CONFIG.ugxPerUsd).toFixed(2);
+  presets.forEach((b) => {
+    const on = Number(b.dataset.amount) === amount && !$('custom').value;
+    const off = tab === 'intl' && Number(b.dataset.amount) < CONFIG.cardMinAmount;
+    b.disabled = off;
+    b.setAttribute('aria-pressed', on);
+    b.className = 'preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold ' +
+      (off ? 'cursor-not-allowed border-forest/10 bg-white/50 text-ink/40' : on ? 'border-forest bg-forest text-almond' : 'border-forest/20 bg-white text-forest');
+  });
+  const note = $('cardNote');
+  note.classList.toggle('hidden', tab !== 'intl');
+  note.textContent = 'Card payments start at ' + fmt(CONFIG.cardMinAmount) + ' (about US$ ' + (CONFIG.cardMinAmount / CONFIG.ugxPerUsd).toFixed(2) + '), so card fees do not swallow the gift.';
+}
+presets.forEach((b) => b.addEventListener('click', () => { amount = Number(b.dataset.amount); saved = null; $('custom').value = ''; hide('amountError'); paint(); }));
+$('custom').addEventListener('input', (e) => {
+  const n = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+  e.target.value = n ? n.toLocaleString('en-US') : '';
+  amount = n; saved = null; hide('amountError'); paint();
+});
+
+/* ---------- Tabs ---------- */
+function setTab(t) {
+  tab = t;
+  // Moving to cards: lift the amount to the card minimum. Moving back: restore what the fan had picked.
+  if (t === 'intl' && amount < CONFIG.cardMinAmount) { saved = { amount, custom: $('custom').value }; amount = CONFIG.cardMinAmount; $('custom').value = ''; hide('amountError'); }
+  else if (t === 'local' && saved) { amount = saved.amount; $('custom').value = saved.custom; saved = null; hide('amountError'); }
+  const local = t === 'local';
+  $('panel-local').classList.toggle('hidden', !local);
+  $('panel-intl').classList.toggle('hidden', local);
+  [['tab-local', local], ['tab-intl', !local]].forEach(([id, on]) => {
+    $(id).setAttribute('aria-selected', on);
+    $(id).className = 'tab min-h-[48px] rounded-xl text-[15px] font-bold ' + (on ? 'bg-forest text-almond' : 'text-forest');
+  });
+  $('payHint').textContent = local ? 'You will get a prompt on your phone to approve.' : 'Your card is charged in US dollars at the current rate.';
+  paint();
+}
+$('tab-local').addEventListener('click', () => setTab('local'));
+$('tab-intl').addEventListener('click', () => setTab('intl'));
+
+/* ---------- Input formatting ---------- */
+const cleanPhone = (v) => { let d = v.replace(/\D/g, ''); if (d.startsWith('256')) d = d.slice(3); if (d.startsWith('0')) d = d.slice(1); return d.slice(0, 9); };
+$('phone').addEventListener('input', (e) => { e.target.value = cleanPhone(e.target.value).replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' ')); hide('phoneError'); });
+$('cardNum').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 '); hide('cardError'); });
+$('cardExp').addEventListener('input', (e) => { let d = e.target.value.replace(/\D/g, '').slice(0, 4); e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; hide('cardError'); });
+$('cardCvv').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); hide('cardError'); });
+
+/* ---------- Validation (your server must validate again) ---------- */
+const luhn = (n) => { let s = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = +n[i]; if (alt) { d *= 2; if (d > 9) d -= 9; } s += d; alt = !alt; } return s % 10 === 0; };
+function validate() {
+  let ok = true;
+  const min = tab === 'intl' ? CONFIG.cardMinAmount : CONFIG.minAmount;
+  if (amount < min) { show('amountError', tab === 'intl' ? 'Card payments start at ' + fmt(min) + ' (about US$ ' + (min / CONFIG.ugxPerUsd).toFixed(2) + ').' : 'Enter at least ' + fmt(min) + '.'); ok = false; }
+  else if (amount > CONFIG.maxAmount) { show('amountError', 'The most you can send at once is ' + fmt(CONFIG.maxAmount) + '.'); ok = false; }
+  if (tab === 'local') {
+    const d = cleanPhone($('phone').value);
+    if (!(d.length === 9 && PREFIXES[network()].includes(d.slice(0, 2)))) {
+      show('phoneError', 'Enter a valid ' + (network() === 'MTN' ? 'MTN number, for example 772 123 456.' : 'Airtel number, for example 752 123 456.')); ok = false;
+    }
+  } else {
+    const n = $('cardNum').value.replace(/\s/g, ''), [mm, yy] = $('cardExp').value.split('/'), now = new Date();
+    const expOk = mm && yy && yy.length === 2 && +mm >= 1 && +mm <= 12 && new Date(2000 + +yy, +mm, 1) > now;
+    if (n.length < 13 || !luhn(n)) { show('cardError', 'Check the card number.'); ok = false; }
+    else if (!expOk) { show('cardError', 'Check the expiry date. Use MM/YY.'); ok = false; }
+    else if ($('cardCvv').value.length < 3) { show('cardError', 'Enter the 3 or 4 digit CVV.'); ok = false; }
+    else if ($('email').value && !/^\S+@\S+\.\S+$/.test($('email').value)) { show('cardError', 'Check your email address.'); ok = false; }
+  }
+  return ok;
+}
+
+/* ------------------------------------------------------------------
+   API CONNECTION 2 (local): start a mobile money payment.
+   POST {apiBase}/api/payments/mobile-money
+   body: { creatorHandle, amount, currency: 'UGX', network, phone }
+   Server: finds the creator's Flutterwave subaccount, calls Flutterwave's Uganda mobile money charge
+   with your SECRET key + unique tx_ref + the subaccount split, saves "pending", returns { txRef }.
+------------------------------------------------------------------- */
+async function initiateLocal(payload) {
+  // const r = await fetch(CONFIG.apiBase + '/api/payments/mobile-money', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  // if (!r.ok) throw new Error('Could not start the payment.'); return r.json();
+  await sleep(1400); return { txRef: 'demo_' + Date.now() };
+}
+/* ------------------------------------------------------------------
+   API CONNECTION 3 (international): start a card payment.
+   POST {apiBase}/api/payments/card   body: { creatorHandle, amount, currency: 'USD', email }
+   Server creates the Flutterwave hosted payment (with the creator's subaccount split) and returns
+   { txRef, link }. In production, send the fan to `link` (or open Flutterwave Inline) so the card
+   details are typed on Flutterwave's page. Flutterwave redirects back with ?tx_ref=...&status=...
+------------------------------------------------------------------- */
+async function initiateCard(payload) {
+  // const r = await fetch(CONFIG.apiBase + '/api/payments/card', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  // const { txRef, link } = await r.json(); window.location.href = link; return { txRef };
+  await sleep(1400); return { txRef: 'demo_' + Date.now() };
+}
+/* ------------------------------------------------------------------
+   API CONNECTION 4: confirm the result.
+   Flutterwave calls your webhook; your server checks the signature header and re-verifies the
+   transaction with Flutterwave before marking it paid. The page then polls:
+   GET {apiBase}/api/payments/{txRef}/status -> { status: 'pending' | 'successful' | 'failed' }
+   every 3 seconds for about 2 minutes.
+------------------------------------------------------------------- */
+async function waitForConfirmation(txRef) {
+  // for (let i = 0; i < 40; i++) { const r = await fetch(CONFIG.apiBase + '/api/payments/' + txRef + '/status'); const { status } = await r.json(); if (status !== 'pending') return { status }; await sleep(3000); }
+  // return { status: 'timeout' };
+  await sleep(3200); return { status: 'successful' };
+}
+
+/* ---------- Processing flow ---------- */
+const STEPS = {
+  local: ['Sending the request to your phone', 'Waiting for you to approve', 'Confirming the payment'],
+  intl: ['Securing your details', 'Checking with your bank', 'Confirming the payment']
+};
+function drawSteps(list, active) {
+  $('steps').innerHTML = list.map((t, i) => {
+    const done = i < active, now = i === active;
+    const icon = done
+      ? '<span class="pop flex h-7 w-7 items-center justify-center rounded-full bg-forest text-almond"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'
+      : now ? '<span class="spin h-7 w-7"></span>'
+      : '<span class="h-7 w-7 rounded-full border-2 border-forest/25"></span>';
+    return '<li class="flex items-center gap-3 ' + (done || now ? 'text-forest font-bold' : 'text-ink/50') + '">' + icon + '<span class="text-base">' + t + '</span></li>';
+  }).join('');
+}
+async function run() {
+  const list = STEPS[tab], isLocal = tab === 'local';
+  const phone = '+256 ' + cleanPhone($('phone').value).replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+  $('procSub').textContent = isLocal ? 'We are asking ' + phone + ' to approve ' + fmt(amount) + '.' : 'Charging about US$ ' + (amount / CONFIG.ugxPerUsd).toFixed(2) + ' to your card.';
+  view('proc'); drawSteps(list, 0); $('procView').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  try {
+    const base = { creatorHandle: CONFIG.creatorHandle, amount };
+    const { txRef } = isLocal
+      ? await initiateLocal({ ...base, currency: 'UGX', network: network(), phone: '256' + cleanPhone($('phone').value) })
+      : await initiateCard({ ...base, currency: 'USD', email: $('email').value });
+    drawSteps(list, 1);
+    const { status } = await waitForConfirmation(txRef);
+    if (status !== 'successful') throw new Error(status === 'timeout' ? 'We did not get your approval in time. Try again.' : 'The payment was not approved. No money was taken.');
+    drawSteps(list, 2); await sleep(900); drawSteps(list, 3); await sleep(500);
+    $('doneText').textContent = 'Your ' + fmt(amount) + ' is on its way to Joseph. ' + (isLocal ? 'Your network will send an SMS receipt.' : 'A receipt is coming to your email.');
+    view('done');
+  } catch (err) {
+    view('form'); show(isLocal ? 'phoneError' : 'cardError', err.message || 'Something went wrong. No money was taken. Try again.');
+  }
+}
+$('backBtn').addEventListener('click', () => { if (validate()) run(); });
+$('againBtn').addEventListener('click', () => { ['phone', 'custom', 'cardNum', 'cardExp', 'cardCvv', 'email'].forEach((id) => $(id).value = ''); amount = 5000; saved = null; view('form'); setTab('local'); });
+
+setTab('local');
+</script>
+</body>
+</html>
