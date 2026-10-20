@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Back @xmusa706 on Twesonde</title>
+<meta name="theme-color" content="#FDFBF7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { forest: '#0D3E26', clay: '#D97746', almond: '#FDFBF7', sage: '#E8EFE9', ink: '#1A2421' },
+  fontFamily: { sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'] }
+} } };
+</script>
+<!-- FIREBASE SDK (v10, compat build, plain script tags). Auth and Firestore only. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :focus-visible { outline: 3px solid #D97746; outline-offset: 2px; }
+  .spin { border-radius: 50%; border: 3px solid #E8EFE9; border-top-color: #0D3E26; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pop { animation: pop .35s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } .pop { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+
+<body class="bg-almond font-sans text-ink antialiased">
+<main class="mx-auto max-w-md px-5 pt-7" style="padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));">
+
+  <!-- Brand header. Two overlapping circles = people pooling together. -->
+  <header class="flex items-center gap-3">
+    <svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#0D3E26"/><circle cx="26" cy="14" r="12" fill="#D97746" fill-opacity=".9"/></svg>
+    <div>
+      <p class="text-[26px] font-extrabold leading-none tracking-tight text-forest">Twesonde</p>
+      <p class="mt-1 text-[13px] text-ink/65" title="Twesonde means: let's contribute together (Luganda)">Twesonde /tway-sown-day/ • Let's back each other.</p>
+    </div>
+  </header>
+
+  <!-- Shown while the creator is being looked up -->
+  <div id="loadingView" class="mt-7 flex items-center gap-3" role="status">
+    <span class="spin h-6 w-6" aria-hidden="true"></span><span class="text-base text-ink/70">Loading profile</span>
+  </div>
+
+  <!-- Shown when ?c= is missing, invalid, or no matching creator exists in Firestore -->
+  <div id="notFoundView" class="mt-7 hidden rounded-3xl bg-sage p-6" role="status">
+    <h1 class="text-2xl font-extrabold text-forest">Creator Profile Not Found</h1>
+    <p id="notFoundText" class="mt-2 text-base leading-relaxed"></p>
+  </div>
+
+  <!-- Everything below is revealed only after a creator has been loaded -->
+  <div id="creatorView" class="hidden">
+
+  <!-- Creator profile. API CONNECTION 1: these four elements are filled from the Firestore "creators"
+       document (see applyCreator in the script). Ids used: creator-avatar, creator-title-name,
+       creator-handle-text, creator-bio-text. -->
+  <section class="mt-7 flex items-start gap-4">
+    <div id="creator-avatar" class="flex h-[76px] w-[76px] flex-none items-center justify-center rounded-full bg-forest text-3xl font-extrabold text-almond" aria-hidden="true">M</div>
+    <div>
+      <h1 id="creator-title-name" class="text-2xl font-extrabold leading-tight text-forest">Musa Exists</h1>
+      <p id="creator-handle-text" class="text-base font-medium text-ink/70">@xmusa706</p>
+    </div>
+  </section>
+  <p id="creator-bio-text" class="mt-3 text-[17px] leading-relaxed">tech guy making tech less knotty 💻...📟</p>
+
+  <!-- Backing card -->
+  <section class="mt-7 rounded-3xl bg-sage p-5" aria-labelledby="back-title">
+
+    <div id="formView">
+      <h2 id="back-title" class="text-xl font-extrabold text-forest">Back <span class="creator-first">Musa</span></h2>
+      <p class="mt-1 text-[15px] text-ink/75">Pick a gift, or enter your own amount.</p>
+
+      <div class="mt-4 flex flex-col gap-2" role="group" aria-label="Choose a gift">
+        <button type="button" data-amount="3000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Buy a Rolex 🌯</span><span>(UGX 3,000)</span></button>
+        <button type="button" data-amount="5000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Buy a Soda 🥤</span><span>(UGX 5,000)</span></button>
+        <button type="button" data-amount="15000" class="preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold"><span>Send Transport 🚌</span><span>(UGX 15,000)</span></button>
+      </div>
+
+      <p id="cardNote" class="mt-3 hidden rounded-xl bg-almond px-3 py-2 text-[14px] text-ink/80"></p>
+
+      <label for="custom" class="mt-4 block text-[15px] font-medium">Or enter another amount</label>
+      <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+        <span class="pl-4 pr-2 text-base font-bold text-ink/60">UGX</span>
+        <input id="custom" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 20,000" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+      </div>
+      <p id="amountError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+
+      <!-- Payment method tabs -->
+      <div class="mt-6 grid grid-cols-2 rounded-2xl bg-almond p-1" role="tablist" aria-label="Payment method">
+        <button id="tab-local" role="tab" aria-selected="true" aria-controls="panel-local" type="button" class="tab min-h-[48px] rounded-xl text-[15px] font-bold">Local pay</button>
+        <button id="tab-intl" role="tab" aria-selected="false" aria-controls="panel-intl" type="button" class="tab min-h-[48px] rounded-xl text-[15px] font-bold">International</button>
+      </div>
+
+      <!-- Local pay -->
+      <div id="panel-local" role="tabpanel" aria-labelledby="tab-local" class="mt-4">
+        <fieldset>
+          <legend class="text-[15px] font-medium">Pay with</legend>
+          <div class="mt-1.5 grid grid-cols-2 gap-2">
+            <label class="block cursor-pointer"><input type="radio" name="network" value="MTN" class="peer sr-only" checked>
+              <span class="flex min-h-[56px] items-center justify-center rounded-xl border-2 border-forest/20 bg-white text-base font-bold text-forest peer-checked:border-forest peer-checked:bg-forest peer-checked:text-almond peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-clay">MTN MoMo</span></label>
+            <label class="block cursor-pointer"><input type="radio" name="network" value="AIRTEL" class="peer sr-only">
+              <span class="flex min-h-[56px] items-center justify-center rounded-xl border-2 border-forest/20 bg-white text-base font-bold text-forest peer-checked:border-forest peer-checked:bg-forest peer-checked:text-almond peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-clay">Airtel Money</span></label>
+          </div>
+        </fieldset>
+        <label for="phone" class="mt-4 block text-[15px] font-medium">Mobile money number</label>
+        <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+          <span class="pl-4 pr-2 text-base font-bold text-ink/60">+256</span>
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="772 123 456" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+        </div>
+        <p id="phoneError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+      </div>
+
+      <!-- International card pay.
+           PRODUCTION NOTE: card numbers must never reach your own server. Use Flutterwave's hosted checkout
+           (or their Inline modal) so the card is entered on Flutterwave's secure page. This form is a visual
+           prototype only and sends nothing anywhere. -->
+      <div id="panel-intl" role="tabpanel" aria-labelledby="tab-intl" class="mt-4 hidden">
+        <label for="cardNum" class="block text-[15px] font-medium">Card number</label>
+        <input id="cardNum" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest">
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div><label for="cardExp" class="block text-[15px] font-medium">Expiry</label>
+            <input id="cardExp" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest"></div>
+          <div><label for="cardCvv" class="block text-[15px] font-medium">CVV</label>
+            <input id="cardCvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest"></div>
+        </div>
+        <label for="email" class="mt-3 block text-[15px] font-medium">Email for your receipt</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest">
+        <p id="cardError" class="mt-1.5 hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+        <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-almond px-3 py-1.5 text-[13px] font-medium text-forest">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          Secured by Flutterwave
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-end justify-between">
+        <span class="text-[15px] font-medium text-ink/70">You are sending</span>
+        <span class="text-right"><span id="total" class="block text-[28px] font-extrabold leading-none text-forest">UGX 5,000</span><span id="usd" class="mt-1 hidden text-[13px] text-ink/65"></span></span>
+      </div>
+      <button id="backBtn" type="button" class="mt-3 min-h-[58px] w-full rounded-2xl bg-clay px-5 text-[19px] font-bold text-white active:scale-[0.99]">Back @xmusa706</button>
+      <p id="payHint" class="mt-3 text-center text-[13px] text-ink/65">You will get a prompt on your phone to approve.</p>
+      <p id="payBlocked" class="mt-3 hidden rounded-xl bg-almond px-3 py-2 text-center text-[14px] font-medium text-[#A8431A]">Payments are not set up for this creator yet.</p>
+    </div>
+
+    <!-- Processing -->
+    <div id="procView" class="hidden" role="status" aria-live="polite">
+      <h2 class="text-xl font-extrabold text-forest">Sending your support</h2>
+      <p id="procSub" class="mt-1 text-[15px] text-ink/75"></p>
+      <ol id="steps" class="mt-5 flex flex-col gap-4"></ol>
+      <p class="mt-6 text-[15px] text-ink/70">Keep this page open until it finishes.</p>
+    </div>
+
+    <!-- Success -->
+    <div id="doneView" class="hidden text-center" role="status" aria-live="polite">
+      <div class="pop mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-forest text-almond" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h2 class="mt-4 text-2xl font-extrabold text-forest">Webale nyo!</h2>
+      <p id="doneText" class="mt-2 text-base leading-relaxed"></p>
+      <button id="againBtn" type="button" class="mt-5 min-h-[52px] w-full rounded-2xl border-2 border-forest text-base font-bold text-forest">Back <span class="creator-first">Musa</span> again</button>
+    </div>
+  </section>
+
+  <footer class="mt-7 text-sm text-ink/60">Twesonde keeps a small fee to run the platform. <span class="creator-first">Musa</span> receives the rest.</footer>
+  </div><!-- /creatorView -->
+</main>
+
+<script>
+const CONFIG = {
+  minAmount: 2000, maxAmount: 5000000,
+  cardMinAmount: 15000,               // international card payments start here so card fees do not swallow the gift
+  ugxPerUsd: 3600,                    // display only. API CONNECTION 4: later read the live rate from your server
+  /* PASTE YOUR CLOUD FUNCTIONS URL HERE.
+     After you deploy, Firebase prints it: https://REGION-YOUR_PROJECT_ID.cloudfunctions.net
+     (or your own domain). No Flutterwave secret key ever goes in this file. */
+  functionsBase: 'https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net',
+  /* Set to true to preview the processing and success screens WITHOUT a backend. Keep false in production. */
+  mockBackend: false
+};
+
+/* ------------------------------------------------------------------
+   FIREBASE CONFIG: PASTE YOUR KEYS HERE.
+   Firebase console > Project settings > General > Your apps > Web app > "SDK setup and configuration" > Config.
+   These values identify your project and are not secrets. Real protection comes from Firestore Security Rules
+   (below) and Firebase App Check, so do not rely on hiding this object.
+   Also enable: Authentication > Sign-in method > Anonymous (used so every visitor gets a verifiable ID token).
+------------------------------------------------------------------- */
+const firebaseConfig = {
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+  projectId: 'YOUR_PROJECT_ID',
+  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID'
+};
+/* Firestore layout and rules: see firestore.rules. Public profile:  creators/{username} -> { name, username, bio, payoutsReady }.
+   The Flutterwave subaccount ID lives in a server-only collection and never reaches this page. */
+const FIREBASE_READY = firebaseConfig.apiKey !== 'YOUR_API_KEY' && typeof firebase !== 'undefined';
+let db = null, auth = null;
+if (FIREBASE_READY) { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); auth = firebase.auth(); }
+
+/* DEFAULT PROFILE: shown when the link has no ?c= parameter (and used if the lookup cannot reach Firestore).
+   Payments stay switched off here until the real Firestore profile exists with payoutsReady = true. */
+const DEFAULT_HANDLE = 'xmusa706';
+const DEFAULT_CREATOR = { name: 'Musa Exists', username: 'xmusa706', bio: 'tech guy making tech less knotty 💻...📟', payoutsReady: false };
+/* Demo mode (keys above still unfilled): lets you preview the whole page, with payments enabled. */
+const DEMO_CREATORS = { xmusa706: { ...DEFAULT_CREATOR, payoutsReady: true } };
+
+/* Global creator state, set once the Firestore lookup succeeds. */
+let creator = null;
+let creatorPayoutsReady = false;   // true once the creator's payout account exists (the subaccount ID itself stays on the server)
+
+const PREFIXES = { MTN: ['76', '77', '78', '39'], AIRTEL: ['70', '74', '75'] };
+let amount = 5000, tab = 'local', saved = null;
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const fmt = (n) => 'UGX ' + n.toLocaleString('en-US');
+const network = () => document.querySelector('input[name="network"]:checked').value;
+const show = (id, msg) => { const e = $(id); e.textContent = msg; e.classList.remove('hidden'); };
+const hide = (id) => $(id).classList.add('hidden');
+const view = (v) => ['form', 'proc', 'done'].forEach((x) => $(x + 'View').classList.toggle('hidden', x !== v));
+
+/* ---------- Amount ---------- */
+const presets = document.querySelectorAll('.preset');
+function paint() {
+  $('total').textContent = fmt(amount);
+  const usd = $('usd');
+  usd.classList.toggle('hidden', tab !== 'intl');
+  usd.textContent = 'about US$ ' + (amount / CONFIG.ugxPerUsd).toFixed(2);
+  presets.forEach((b) => {
+    const on = Number(b.dataset.amount) === amount && !$('custom').value;
+    const off = tab === 'intl' && Number(b.dataset.amount) < CONFIG.cardMinAmount;
+    b.disabled = off;
+    b.setAttribute('aria-pressed', on);
+    b.className = 'preset flex min-h-[56px] items-center justify-between rounded-2xl border-2 px-4 text-left text-base font-bold ' +
+      (off ? 'cursor-not-allowed border-forest/10 bg-white/50 text-ink/40' : on ? 'border-forest bg-forest text-almond' : 'border-forest/20 bg-white text-forest');
+  });
+  const note = $('cardNote');
+  note.classList.toggle('hidden', tab !== 'intl');
+  note.textContent = 'Card payments start at ' + fmt(CONFIG.cardMinAmount) + ' (about US$ ' + (CONFIG.cardMinAmount / CONFIG.ugxPerUsd).toFixed(2) + '), so card fees do not swallow the gift.';
+}
+presets.forEach((b) => b.addEventListener('click', () => { amount = Number(b.dataset.amount); saved = null; $('custom').value = ''; hide('amountError'); paint(); }));
+$('custom').addEventListener('input', (e) => {
+  const n = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+  e.target.value = n ? n.toLocaleString('en-US') : '';
+  amount = n; saved = null; hide('amountError'); paint();
+});
+
+/* ---------- Tabs ---------- */
+function setTab(t) {
+  tab = t;
+  // Moving to cards: lift the amount to the card minimum. Moving back: restore what the fan had picked.
+  if (t === 'intl' && amount < CONFIG.cardMinAmount) { saved = { amount, custom: $('custom').value }; amount = CONFIG.cardMinAmount; $('custom').value = ''; hide('amountError'); }
+  else if (t === 'local' && saved) { amount = saved.amount; $('custom').value = saved.custom; saved = null; hide('amountError'); }
+  const local = t === 'local';
+  $('panel-local').classList.toggle('hidden', !local);
+  $('panel-intl').classList.toggle('hidden', local);
+  [['tab-local', local], ['tab-intl', !local]].forEach(([id, on]) => {
+    $(id).setAttribute('aria-selected', on);
+    $(id).className = 'tab min-h-[48px] rounded-xl text-[15px] font-bold ' + (on ? 'bg-forest text-almond' : 'text-forest');
+  });
+  $('payHint').textContent = local ? 'You will get a prompt on your phone to approve.' : 'Your card is charged in US dollars at the current rate.';
+  paint();
+}
+$('tab-local').addEventListener('click', () => setTab('local'));
+$('tab-intl').addEventListener('click', () => setTab('intl'));
+
+/* ---------- Input formatting ---------- */
+const cleanPhone = (v) => { let d = v.replace(/\D/g, ''); if (d.startsWith('256')) d = d.slice(3); if (d.startsWith('0')) d = d.slice(1); return d.slice(0, 9); };
+$('phone').addEventListener('input', (e) => { e.target.value = cleanPhone(e.target.value).replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' ')); hide('phoneError'); });
+$('cardNum').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 '); hide('cardError'); });
+$('cardExp').addEventListener('input', (e) => { let d = e.target.value.replace(/\D/g, '').slice(0, 4); e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; hide('cardError'); });
+$('cardCvv').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); hide('cardError'); });
+
+/* ---------- Validation (your server must validate again) ---------- */
+const luhn = (n) => { let s = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = +n[i]; if (alt) { d *= 2; if (d > 9) d -= 9; } s += d; alt = !alt; } return s % 10 === 0; };
+function validate() {
+  let ok = true;
+  const min = tab === 'intl' ? CONFIG.cardMinAmount : CONFIG.minAmount;
+  if (amount < min) { show('amountError', tab === 'intl' ? 'Card payments start at ' + fmt(min) + ' (about US$ ' + (min / CONFIG.ugxPerUsd).toFixed(2) + ').' : 'Enter at least ' + fmt(min) + '.'); ok = false; }
+  else if (amount > CONFIG.maxAmount) { show('amountError', 'The most you can send at once is ' + fmt(CONFIG.maxAmount) + '.'); ok = false; }
+  if (tab === 'local') {
+    const d = cleanPhone($('phone').value);
+    if (!(d.length === 9 && PREFIXES[network()].includes(d.slice(0, 2)))) {
+      show('phoneError', 'Enter a valid ' + (network() === 'MTN' ? 'MTN number, for example 772 123 456.' : 'Airtel number, for example 752 123 456.')); ok = false;
+    }
+  } else {
+    const n = $('cardNum').value.replace(/\s/g, ''), [mm, yy] = $('cardExp').value.split('/'), now = new Date();
+    const expOk = mm && yy && yy.length === 2 && +mm >= 1 && +mm <= 12 && new Date(2000 + +yy, +mm, 1) > now;
+    if (n.length < 13 || !luhn(n)) { show('cardError', 'Check the card number.'); ok = false; }
+    else if (!expOk) { show('cardError', 'Check the expiry date. Use MM/YY.'); ok = false; }
+    else if ($('cardCvv').value.length < 3) { show('cardError', 'Enter the 3 or 4 digit CVV.'); ok = false; }
+    else if ($('email').value && !/^\S+@\S+\.\S+$/.test($('email').value)) { show('cardError', 'Check your email address.'); ok = false; }
+  }
+  return ok;
+}
+
+/* ------------------------------------------------------------------
+   API CONNECTION 2: create the payment. Calls the createPayment Cloud Function (functions/index.js).
+   POST {functionsBase}/createPayment    Header: Authorization: Bearer <Firebase ID token>
+   Body: { creatorHandle, amount (UGX), currency: 'UGX', method: 'mobile_money', network, phone, idempotencyKey }
+   Response: { txRef }. The server finds the creator's Flutterwave subaccount itself, so nothing here can redirect money.
+   Card payments are not enabled on the server yet; that tab shows a clear message instead.
+------------------------------------------------------------------- */
+async function authHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (auth && auth.currentUser) h.Authorization = 'Bearer ' + await auth.currentUser.getIdToken();
+  return h;
+}
+async function submitPayment(payload) {
+  if (CONFIG.mockBackend) { await sleep(1400); return { txRef: 'demo_' + Date.now() }; }
+  const res = await fetch(CONFIG.functionsBase + '/createPayment', { method: 'POST', headers: await authHeaders(), body: JSON.stringify(payload) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'We could not start the payment. No money was taken.');
+  return data;
+}
+/* ------------------------------------------------------------------
+   API CONNECTION 3: confirm the result.
+   Flutterwave calls a webhook function on your side; it checks the signature header, re-verifies the transaction with
+   Flutterwave, then updates the payment in Firestore. The page polls:
+   GET {functionsBase}/paymentStatus?txRef=...  ->  { status: 'pending' | 'successful' | 'failed' }
+------------------------------------------------------------------- */
+async function waitForConfirmation(txRef) {
+  if (CONFIG.mockBackend) { await sleep(3200); return { status: 'successful' }; }
+  for (let i = 0; i < 40; i++) {
+    const res = await fetch(CONFIG.functionsBase + '/paymentStatus?txRef=' + encodeURIComponent(txRef), { headers: await authHeaders() });
+    const { status } = await res.json().catch(() => ({ status: 'pending' }));
+    if (status !== 'pending') return { status };
+    await sleep(3000);
+  }
+  return { status: 'timeout' };
+}
+
+/* ---------- Processing flow ---------- */
+const STEPS = {
+  local: ['Sending the request to your phone', 'Waiting for you to approve', 'Confirming the payment'],
+  intl: ['Securing your details', 'Checking with your bank', 'Confirming the payment']
+};
+function drawSteps(list, active) {
+  $('steps').innerHTML = list.map((t, i) => {
+    const done = i < active, now = i === active;
+    const icon = done
+      ? '<span class="pop flex h-7 w-7 items-center justify-center rounded-full bg-forest text-almond"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'
+      : now ? '<span class="spin h-7 w-7"></span>'
+      : '<span class="h-7 w-7 rounded-full border-2 border-forest/25"></span>';
+    return '<li class="flex items-center gap-3 ' + (done || now ? 'text-forest font-bold' : 'text-ink/50') + '">' + icon + '<span class="text-base">' + t + '</span></li>';
+  }).join('');
+}
+async function run() {
+  if (!creator || !creatorPayoutsReady) return;
+  const isLocal = tab === 'local', list = STEPS[tab], first = creator.name.split(' ')[0];
+  const digits = cleanPhone($('phone').value);
+  const phone = '+256 ' + digits.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+  $('procSub').textContent = isLocal ? 'We are asking ' + phone + ' to approve ' + fmt(amount) + '.' : 'Charging about US$ ' + (amount / CONFIG.ugxPerUsd).toFixed(2) + ' to your card.';
+  view('proc'); drawSteps(list, 0); $('procView').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  try {
+    /* The payload sent to the Cloud Function (see API CONNECTION 2 for what the server does with it). */
+    const payload = {
+      creatorHandle: creator.username,
+      amount,                                           // always UGX; the server converts for cards
+      currency: 'UGX',
+      method: isLocal ? 'mobile_money' : 'card',
+      network: isLocal ? network() : null,
+      phone: isLocal ? '256' + digits : null,           // fan phone number
+      email: isLocal ? null : $('email').value || null,
+      idempotencyKey: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())
+    };
+    const data = await submitPayment(payload);
+    if (data.link) { window.location.href = data.link; return; }   // card: continue on Flutterwave's hosted page
+    drawSteps(list, 1);
+    const { status } = await waitForConfirmation(data.txRef);
+    if (status !== 'successful') throw new Error(status === 'timeout' ? 'We did not get your approval in time. Try again.' : 'The payment was not approved. No money was taken.');
+    drawSteps(list, 2); await sleep(900); drawSteps(list, 3); await sleep(500);
+    $('doneText').textContent = 'Your ' + fmt(amount) + ' is on its way to ' + first + '. ' + (isLocal ? 'Your network will send an SMS receipt.' : 'A receipt is coming to your email.');
+    view('done');
+  } catch (err) {
+    view('form');
+    const msg = err instanceof TypeError ? 'We could not reach the payment server. Check your connection. No money was taken.' : (err.message || 'Something went wrong. No money was taken. Try again.');
+    show(isLocal ? 'phoneError' : 'cardError', msg);
+  }
+}
+$('backBtn').addEventListener('click', () => { if (validate()) run(); });
+$('againBtn').addEventListener('click', () => { ['phone', 'custom', 'cardNum', 'cardExp', 'cardCvv', 'email'].forEach((id) => $(id).value = ''); amount = 5000; saved = null; view('form'); setTab('local'); });
+
+/* ------------------------------------------------------------------
+   API CONNECTION 1: look up the creator in Firestore.
+   Reads creators/{username}. Visitors first sign in anonymously so your rules can require request.auth != null
+   and your Cloud Function can verify the fan's ID token.
+------------------------------------------------------------------- */
+async function loadCreator(username) {
+  if (!FIREBASE_READY) { await sleep(500); return DEMO_CREATORS[username] || null; }   // placeholder keys: demo mode
+  if (!auth.currentUser) await auth.signInAnonymously();
+  const snap = await db.collection('creators').doc(username).get();
+  return snap.exists ? snap.data() : null;
+}
+function showNotFound(message) {
+  $('loadingView').classList.add('hidden'); $('creatorView').classList.add('hidden');
+  $('notFoundText').textContent = message || 'We could not find this creator. Check the link, or ask them to share it again.';
+  $('notFoundView').classList.remove('hidden');
+  document.title = 'Creator Profile Not Found | Twesonde';
+}
+/* Writes with textContent only (never innerHTML), so database text can never inject markup. */
+function applyCreator(data, username) {
+  creator = { name: String(data.name || username), username, bio: String(data.bio || '') };
+  creatorPayoutsReady = data.payoutsReady === true;
+  $('creator-title-name').textContent = creator.name;
+  $('creator-handle-text').textContent = '@' + username;
+  $('creator-bio-text').textContent = creator.bio;
+  $('creator-bio-text').classList.toggle('hidden', !creator.bio);
+  $('creator-avatar').textContent = creator.name.charAt(0).toUpperCase();
+  document.querySelectorAll('.creator-first').forEach((el) => { el.textContent = creator.name.split(' ')[0]; });
+  $('backBtn').textContent = 'Back @' + username;
+  const blocked = !creatorPayoutsReady;
+  $('backBtn').disabled = blocked;
+  $('backBtn').classList.toggle('opacity-50', blocked);
+  $('payBlocked').classList.toggle('hidden', !blocked);
+  document.title = 'Back @' + username + ' on Twesonde';
+  $('loadingView').classList.add('hidden'); $('notFoundView').classList.add('hidden'); $('creatorView').classList.remove('hidden');
+}
+
+/* Dynamic routing: twesonde.html?c=xmusa706 */
+window.onload = async () => {
+  setTab('local');
+  const raw = new URLSearchParams(window.location.search).get('c');
+  const username = (raw || DEFAULT_HANDLE).trim().replace(/^@/, '').toLowerCase();   // no ?c= means the default profile
+  if (!/^[a-z0-9._]{2,30}$/.test(username)) {
+    return showNotFound(raw ? 'That creator name does not look right. Check the link and try again.' : 'This link is missing a creator name. Check the link and try again.');
+  }
+  try {
+    let data = await loadCreator(username);
+    if (!data && !raw) data = DEFAULT_CREATOR;
+    data ? applyCreator(data, username) : showNotFound();
+  } catch (err) {
+    console.error('Creator lookup failed:', err);
+    if (!raw) return applyCreator(DEFAULT_CREATOR, DEFAULT_HANDLE);
+    showNotFound('We could not load this profile right now. Please try again in a moment.');
+  }
+};
+</script>
+</body>
+</html>
