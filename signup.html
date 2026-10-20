@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Create your Twesonde page</title>
+<meta name="theme-color" content="#FDFBF7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { forest: '#0D3E26', clay: '#D97746', almond: '#FDFBF7', sage: '#E8EFE9', ink: '#1A2421' },
+  fontFamily: { sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'] }
+} } };
+</script>
+<style>
+  :focus-visible { outline: 3px solid #D97746; outline-offset: 2px; }
+  .spin { border-radius: 50%; border: 3px solid #E8EFE9; border-top-color: #fff; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+</style>
+</head>
+<body class="bg-almond font-sans text-ink antialiased">
+<main class="mx-auto max-w-md px-5 pt-7" style="padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));">
+
+  <header class="flex items-center gap-3">
+    <svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#0D3E26"/><circle cx="26" cy="14" r="12" fill="#D97746" fill-opacity=".9"/></svg>
+    <p class="text-[26px] font-extrabold leading-none tracking-tight text-forest">Twesonde</p>
+  </header>
+
+  <div id="formView">
+    <h1 class="mt-8 text-[28px] font-extrabold leading-tight text-forest">Create your page</h1>
+    <p class="mt-2 text-[17px] leading-relaxed">Set up a link for your bio and let your fans back you with mobile money.</p>
+
+    <form id="form" class="mt-6 flex flex-col gap-4 rounded-3xl bg-sage p-5" novalidate>
+      <div>
+        <label for="username" class="block text-[15px] font-medium">Desired username</label>
+        <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+          <span class="pl-4 pr-1 text-base font-bold text-ink/60">@</span>
+          <input id="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="xmusa706" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+        </div>
+        <p id="usernameMsg" class="mt-1.5 min-h-[20px] text-[15px]" aria-live="polite">Letters, numbers, dots and underscores. 3 to 24 characters.</p>
+      </div>
+
+      <div>
+        <label for="name" class="block text-[15px] font-medium">Full display name</label>
+        <input id="name" type="text" autocomplete="name" maxlength="50" placeholder="Musa Exists" class="mt-1.5 min-h-[52px] w-full rounded-xl border-2 border-forest/20 bg-white px-4 text-base outline-none placeholder:text-ink/40 focus:border-forest">
+      </div>
+
+      <div>
+        <label for="bio" class="block text-[15px] font-medium">Short bio</label>
+        <textarea id="bio" maxlength="160" rows="3" placeholder="Tell fans what you make" class="mt-1.5 w-full resize-none rounded-xl border-2 border-forest/20 bg-white px-4 py-3 text-base outline-none placeholder:text-ink/40 focus:border-forest"></textarea>
+        <p id="bioCount" class="mt-1 text-right text-[13px] text-ink/65">0 / 160</p>
+      </div>
+
+      <div>
+        <label for="phone" class="block text-[15px] font-medium">Mobile money number (MTN or Airtel)</label>
+        <div class="mt-1.5 flex items-center rounded-xl border-2 border-forest/20 bg-white focus-within:border-forest">
+          <span class="pl-4 pr-2 text-base font-bold text-ink/60">+256</span>
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="772 123 456" class="min-h-[52px] w-full rounded-xl bg-transparent pr-4 text-base outline-none placeholder:text-ink/40">
+        </div>
+        <p id="phoneMsg" class="mt-1.5 min-h-[20px] text-[15px]" aria-live="polite"></p>
+      </div>
+
+      <!-- Required notice about the Flutterwave subaccount -->
+      <div class="rounded-2xl border-2 border-clay bg-almond p-4" role="note">
+        <p class="text-[15px] font-bold text-forest">Before you continue</p>
+        <p class="mt-1 text-[15px] leading-relaxed">Your phone number will be used to securely create a Flutterwave subaccount, so fan payments can be paid out directly to your mobile money. Use a number registered in your own name.</p>
+        <label class="mt-3 flex min-h-[44px] items-start gap-3">
+          <input id="agree" type="checkbox" class="mt-0.5 h-6 w-6 flex-none accent-[#0D3E26]">
+          <span class="text-[15px]">I understand and agree to this.</span>
+        </label>
+      </div>
+
+      <p id="formError" class="hidden text-[15px] font-medium text-[#A8431A]" role="alert"></p>
+      <button id="submitBtn" type="submit" class="flex min-h-[58px] w-full items-center justify-center gap-3 rounded-2xl bg-clay px-5 text-[19px] font-bold text-white disabled:opacity-60">Create my page</button>
+    </form>
+  </div>
+
+  <div id="doneView" class="mt-8 hidden rounded-3xl bg-sage p-6" role="status" aria-live="polite">
+    <h1 class="text-[26px] font-extrabold text-forest">Your page is ready</h1>
+    <p class="mt-2 text-base leading-relaxed">Put this link in your TikTok bio:</p>
+    <p id="newLink" class="mt-2 break-all rounded-xl bg-white px-4 py-3 text-base font-medium"></p>
+    <a id="openLink" href="#" class="mt-4 flex min-h-[56px] items-center justify-center rounded-2xl bg-clay px-5 text-[19px] font-bold text-white">Open my page</a>
+    <button id="copyBtn" type="button" class="mt-3 min-h-[52px] w-full rounded-2xl border-2 border-forest text-base font-bold text-forest">Copy link</button>
+  </div>
+</main>
+
+<script type="module">
+/* ==================================================================
+   STEP 1. PASTE YOUR FIREBASE KEYS (Firebase console > Project settings > General > Your apps > Web app > Config).
+   These identify your project; they are not secrets. Security comes from firestore.rules and the Cloud Function.
+   Also enable Authentication > Sign-in method > Anonymous.
+================================================================== */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+  projectId: 'YOUR_PROJECT_ID',
+  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID'
+};
+/* STEP 2. After deploying the functions, paste the base URL Firebase prints (same value as in twesonde.html). */
+const FUNCTIONS_BASE = 'https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net';
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = (id) => document.getElementById(id);
+const PREFIXES = { MTN: ['76', '77', '78', '39'], AIRTEL: ['70', '74', '75'] };
+const RESERVED = ['admin', 'api', 'signup', 'twesonde', 'support', 'help', 'root', 'www', 'login', 'settings', 'about'];
+const msg = (el, text, kind) => {
+  el.textContent = text;
+  el.classList.remove('text-[#A8431A]', 'text-forest', 'text-ink/70', 'font-medium');
+  el.classList.add(...(kind === 'bad' ? ['text-[#A8431A]', 'font-medium'] : kind === 'good' ? ['text-forest', 'font-medium'] : ['text-ink/70']));
+};
+
+async function ensureSignedIn() {
+  if (!auth.currentUser) await signInAnonymously(auth);
+  return auth.currentUser;
+}
+const cleanUsername = (v) => v.trim().replace(/^@/, '').toLowerCase();
+const usernameProblem = (u) => !/^[a-z0-9._]{3,24}$/.test(u) || /^\.|\.$|\.\./.test(u) ? 'Use 3 to 24 letters, numbers, dots or underscores.' : RESERVED.includes(u) ? 'That name is reserved. Try another.' : '';
+function parsePhone(raw) {
+  let d = raw.replace(/\D/g, ''); if (d.startsWith('256')) d = d.slice(3); if (d.startsWith('0')) d = d.slice(1);
+  if (d.length !== 9) return null;
+  const p = d.slice(0, 2), network = PREFIXES.MTN.includes(p) ? 'MTN' : PREFIXES.AIRTEL.includes(p) ? 'Airtel' : null;
+  return network ? { digits: d, network } : null;
+}
+
+/* Live checks */
+$('bio').addEventListener('input', () => { $('bioCount').textContent = $('bio').value.length + ' / 160'; });
+$('phone').addEventListener('input', (e) => {
+  const d = e.target.value.replace(/\D/g, '').replace(/^256/, '').replace(/^0/, '').slice(0, 9);
+  e.target.value = d.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' '));
+  const ph = parsePhone(d);
+  msg($('phoneMsg'), d.length === 9 ? (ph ? ph.network + ' number detected.' : 'That is not an MTN or Airtel number.') : '', d.length === 9 ? (ph ? 'good' : 'bad') : '');
+});
+
+/* API CONNECTION A (Firestore read): is the username free? The server checks again when you submit. */
+async function usernameTaken(u) {
+  await ensureSignedIn();
+  return (await getDoc(doc(db, 'creators', u))).exists();
+}
+$('username').addEventListener('blur', async () => {
+  const u = cleanUsername($('username').value); if (!u) return;
+  const bad = usernameProblem(u); if (bad) return msg($('usernameMsg'), bad, 'bad');
+  try { const taken = await usernameTaken(u); msg($('usernameMsg'), taken ? '@' + u + ' is taken. Try another.' : '@' + u + ' is available.', taken ? 'bad' : 'good'); }
+  catch (e) { msg($('usernameMsg'), 'We could not check that name right now. You can still continue.', ''); }
+});
+
+function fail(text) { $('formError').textContent = text; $('formError').classList.remove('hidden'); }
+function busy(on) {
+  $('submitBtn').disabled = on;
+  $('submitBtn').innerHTML = on ? '<span class="spin h-5 w-5" aria-hidden="true"></span>Creating your page' : 'Create my page';
+}
+
+/* API CONNECTION B (Cloud Function registerCreator): creates the Flutterwave subaccount and saves the profile. */
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault(); $('formError').classList.add('hidden');
+  const username = cleanUsername($('username').value), name = $('name').value.trim(), bio = $('bio').value.trim(), ph = parsePhone($('phone').value);
+  if (usernameProblem(username)) return fail(usernameProblem(username));
+  if (name.length < 2) return fail('Enter your full display name.');
+  if (!ph) return fail('Enter a valid MTN or Airtel number, for example 772 123 456.');
+  if (!$('agree').checked) return fail('Please tick the box to confirm you understand how your number is used.');
+  busy(true);
+  try {
+    const user = await ensureSignedIn();
+    if (await usernameTaken(username)) { busy(false); return fail('@' + username + ' is taken. Try another username.'); }
+    const res = await fetch(FUNCTIONS_BASE + '/registerCreator', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await user.getIdToken() },
+      body: JSON.stringify({ username, name, bio, phone: '256' + ph.digits })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+    const link = new URL('twesonde.html?c=' + encodeURIComponent(data.username), location.href).href;   // same folder as this page
+    $('newLink').textContent = link; $('openLink').href = link;
+    $('formView').classList.add('hidden'); $('doneView').classList.remove('hidden'); window.scrollTo({ top: 0 });
+  } catch (err) {
+    busy(false);
+    fail(err instanceof TypeError ? 'We could not reach the server. Check your connection and try again.' : err.message);
+  }
+});
+$('copyBtn').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('newLink').textContent); $('copyBtn').textContent = 'Copied'; } catch { $('copyBtn').textContent = 'Press and hold the link to copy'; }
+});
+</script>
+</body>
+</html>
